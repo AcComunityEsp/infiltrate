@@ -418,7 +418,6 @@
         </div>
     </div>
 </div>
-
 <!-- MODAL DE REGISTRO -->
 <div class="modal" id="register-modal">
     <div class="modal-content">
@@ -446,8 +445,7 @@
         </div>
     </div>
 </div>
-
-<!-- MODAL DE INICIO DE SESIÓN (NUEVO) -->
+<!-- MODAL DE INICIO DE SESIÓN -->
 <div class="modal" id="login-modal">
     <div class="modal-content">
         <div class="close" onclick="closeLoginModal()" style="top:20px;right:20px;">✖</div>
@@ -458,17 +456,17 @@
         <form id="login-form" class="register-form" onsubmit="handleLogin(event)">
             <label id="label-login-email">Correo electrónico</label>
             <input type="email" id="login-email" required autocomplete="email">
-            
+           
             <label id="label-login-password">Contraseña</label>
             <input type="password" id="login-password" required minlength="6" autocomplete="current-password">
-            
+           
             <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 20px;font-size:0.9rem;">
                 <label style="cursor:pointer;display:flex;align-items:center;gap:6px;">
                     <input type="checkbox" id="remember-me" style="accent-color:#ff4081;"> Recordarme
                 </label>
                 <a onclick="forgotPassword()" style="color:#ff4081;cursor:pointer;">¿Olvidaste tu contraseña?</a>
             </div>
-            
+           
             <button type="submit" id="login-btn">Iniciar sesión</button>
         </form>
         <div class="register-footer">
@@ -477,7 +475,6 @@
         </div>
     </div>
 </div>
-
 <script>
 /* ==================== SUPABASE CONFIG ==================== */
 const SUPABASE_URL = 'https://sppprhvlotyczbfbnhrm.supabase.co';
@@ -486,7 +483,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_NbReu85I1VvdbQngDW5Lpg_uZxMhyqO';
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 /* ======================================================== */
-
 const products = [
     {title_es:"Chaqueta Moderna", title_en:"Modern Jacket", price:"€59.99", desc_es:"Chaqueta premium de corte oversize con forro interior suave. Material resistente al agua.", desc_en:"Premium oversized jacket with soft interior lining. Water-resistant material.", images:["https://images.unsplash.com/photo-1520975922284-8b456906c813","https://images.unsplash.com/photo-1551028719-00167b16b4d0"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1520975922284-8b456906c813","#3498db":"https://images.unsplash.com/photo-1551028719-00167b16b4d0","#2c3e50":"https://images.unsplash.com/photo-1542272604-787c3835535d","#f1c40f":"https://images.unsplash.com/photo-1586790170083-2f9ceadc7327"}},
     {title_es:"Sudadera Urbana", title_en:"Urban Hoodie", price:"€39.99", desc_es:"Sudadera de algodón orgánico con capucha y bolsillo canguro. Estilo streetwear.", desc_en:"Organic cotton hoodie with hood and kangaroo pocket. Streetwear style.", images:["https://images.unsplash.com/photo-1520974735194-6d4d6c38b6c0","https://images.unsplash.com/photo-1556821840-3a63f95609a7"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1520974735194-6d4d6c38b6c0","#3498db":"https://images.unsplash.com/photo-1556821840-3a63f95609a7","#2c3e50":"https://images.unsplash.com/photo-1586790170083-2f9ceadc7327","#f1c40f":"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"}},
@@ -495,12 +491,36 @@ const products = [
     {title_es:"Zapatillas Urbanas", title_en:"Urban Sneakers", price:"€69.99", desc_es:"Zapatillas deportivas urbanas con suela amortiguada y diseño minimalista.", desc_en:"Urban sneakers with cushioned sole and minimalist design.", images:["https://images.unsplash.com/photo-1549298916-b41d501d3772","https://images.unsplash.com/photo-1605408499391-7b4c4c4f5f"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1549298916-b41d501d3772","#3498db":"https://images.unsplash.com/photo-1605408499391-7b4c4c4f5f","#2c3e50":"https://images.unsplash.com/photo-1520975922284-8b456906c813","#f1c40f":"https://images.unsplash.com/photo-1551028719-00167b16b4d0"}},
     {title_es:"Jeans Cargo", title_en:"Cargo Jeans", price:"€54.99", desc_es:"Jeans cargo con múltiples bolsillos y corte recto. Estilo streetwear premium.", desc_en:"Cargo jeans with multiple pockets and straight fit. Premium streetwear style.", images:["https://images.unsplash.com/photo-1542272604-787c3835535d","https://images.unsplash.com/photo-1551028719-00167b16b4d0"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1542272604-787c3835535d","#3498db":"https://images.unsplash.com/photo-1551028719-00167b16b4d0","#2c3e50":"https://images.unsplash.com/photo-1503342217505-b0a15ec3261c","#f1c40f":"https://images.unsplash.com/photo-1520974735194-6d4d6c38b6c0"}}
 ];
-
 let currentLang = "es";
 let currentProduct = 0;
 let selectedSize = "S";
 let selectedColor = "#e74c3c";
 let currentUser = null; // Para saber si el usuario está logueado
+
+// ==================== NUEVAS FUNCIONES PARA "RECORDARME" ====================
+function loadSavedSession() {
+    // Primero buscamos en localStorage (Recordarme activado)
+    let userData = localStorage.getItem('luxemoda_user');
+    
+    // Si no hay en localStorage, buscamos en sessionStorage (sesión normal)
+    if (!userData) {
+        userData = sessionStorage.getItem('luxemoda_user');
+    }
+    
+    if (userData) {
+        currentUser = JSON.parse(userData);
+        // Cambiamos el icono del usuario a "logueado"
+        document.getElementById("user-btn").innerHTML = `<i class="fa-solid fa-circle-user"></i>`;
+    }
+}
+
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('luxemoda_user');
+    sessionStorage.removeItem('luxemoda_user');
+    document.getElementById("user-btn").innerHTML = `<i class="fa-regular fa-user"></i>`;
+    alert(currentLang === "es" ? "Sesión cerrada correctamente" : "Logged out successfully");
+}
 
 // ==================== FUNCIONES DE PRODUCTOS ====================
 function showHome() {
@@ -571,7 +591,6 @@ function addToCart() {
         : `Added to cart!\n${products[currentProduct].title_en} - ${selectedSize} - ${selectedColor}`;
     alert(msg);
 }
-
 // ==================== MODALES DE AUTENTICACIÓN ====================
 function openRegisterModal() {
     document.getElementById("register-modal").classList.add("active");
@@ -587,8 +606,7 @@ function openLoginModal() {
 function closeLoginModal() {
     document.getElementById("login-modal").classList.remove("active");
 }
-
-// Registro (ya existente, solo se mantiene)
+// Registro
 async function handleRegister(e) {
     e.preventDefault();
     const name = document.getElementById("reg-name").value.trim();
@@ -596,17 +614,14 @@ async function handleRegister(e) {
     const email = document.getElementById("reg-email").value.trim();
     const password = document.getElementById("reg-password").value;
     const birthdate = document.getElementById("reg-birthdate").value;
-
     if (!name || !surname || !email || !password || !birthdate) {
         alert(currentLang === "es" ? "Por favor completa todos los campos" : "Please fill in all fields");
         return;
     }
-
     const registerBtn = document.getElementById("register-btn");
     const originalText = registerBtn.innerText;
     registerBtn.innerText = currentLang === "es" ? "Registrando..." : "Registering...";
     registerBtn.disabled = true;
-
     try {
         const { data, error } = await supabaseClient
             .from('usuarios')
@@ -618,16 +633,13 @@ async function handleRegister(e) {
                 fecha_nacimiento: birthdate
             }])
             .select();
-
         if (error) throw error;
-
         alert(currentLang === "es"
             ? `¡Registro completado con éxito! 🎉\nBienvenido, ${name} ${surname}`
             : `Registration successful! 🎉\nWelcome, ${name} ${surname}`);
-        
+       
         closeRegisterModal();
         document.getElementById("register-form").reset();
-        // Abrir automáticamente el login después del registro
         setTimeout(() => openLoginModal(), 800);
     } catch (error) {
         console.error('Error:', error);
@@ -639,53 +651,61 @@ async function handleRegister(e) {
         registerBtn.disabled = false;
     }
 }
-
-// NUEVO: Inicio de sesión
+// INICIO DE SESIÓN (con soporte completo para "Recordarme")
 async function handleLogin(e) {
     e.preventDefault();
-    
+   
     const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-password").value;
-    
+   
     if (!email || !password) {
         alert(currentLang === "es" ? "Por favor ingresa correo y contraseña" : "Please enter email and password");
         return;
     }
-
     const loginBtn = document.getElementById("login-btn");
     const originalText = loginBtn.innerText;
     loginBtn.innerText = currentLang === "es" ? "Iniciando sesión..." : "Signing in...";
     loginBtn.disabled = true;
-
     try {
-        // Consulta a la misma tabla que usas en el registro
         const { data, error } = await supabaseClient
             .from('usuarios')
             .select('*')
             .eq('correo_electronico', email)
             .single();
-
         if (error || !data) {
             throw new Error(currentLang === "es" ? "Usuario no encontrado" : "User not found");
         }
-
         if (data.contraseña !== password) {
             throw new Error(currentLang === "es" ? "Contraseña incorrecta" : "Incorrect password");
         }
-
         // Login exitoso
         currentUser = data;
+       
+        // === NUEVO: Guardar sesión según la opción "Recordarme" ===
+        const rememberMe = document.getElementById("remember-me").checked;
         
+        // Limpiamos ambos storages para evitar conflictos
+        localStorage.removeItem('luxemoda_user');
+        sessionStorage.removeItem('luxemoda_user');
+        
+        if (rememberMe) {
+            // Con "Recordarme" → la sesión persiste aunque apagues el ordenador o cierres el navegador
+            localStorage.setItem('luxemoda_user', JSON.stringify(data));
+        } else {
+            // Sin "Recordarme" → la sesión se pierde al cerrar la pestaña
+            sessionStorage.setItem('luxemoda_user', JSON.stringify(data));
+        }
+       
         alert(currentLang === "es"
             ? `¡Bienvenido de nuevo, ${data.nombre}! 👋`
             : `Welcome back, ${data.nombre}! 👋`);
-        
+       
         closeLoginModal();
         document.getElementById("login-form").reset();
-        
-        // Opcional: cambiar el icono del usuario a "loggeado"
+       
+        // Cambiar icono de usuario
         document.getElementById("user-btn").innerHTML = `<i class="fa-solid fa-circle-user"></i>`;
-        
+       
     } catch (error) {
         console.error('Error:', error);
         alert(currentLang === "es"
@@ -696,14 +716,12 @@ async function handleLogin(e) {
         loginBtn.disabled = false;
     }
 }
-
 // Olvidaste contraseña (demo)
 function forgotPassword() {
-    alert(currentLang === "es" 
-        ? "En un proyecto real recibirías un email de recuperación.\nPor ahora, prueba con los datos que registraste." 
+    alert(currentLang === "es"
+        ? "En un proyecto real recibirías un email de recuperación.\nPor ahora, prueba con los datos que registraste."
         : "In a real project you would receive a recovery email.\nFor now, use the credentials you registered.");
 }
-
 // Cambiar entre modales
 function switchToLogin() {
     closeRegisterModal();
@@ -713,19 +731,17 @@ function switchToRegister() {
     closeLoginModal();
     setTimeout(() => openRegisterModal(), 300);
 }
-
-// Actualizar textos del login (bilingüe)
+// Actualizar textos del login
 function updateLoginLabels() {
     document.getElementById("login-title").innerText = currentLang === "es" ? "Iniciar sesión" : "Sign In";
-    document.getElementById("login-subtitle").innerText = currentLang === "es" 
-        ? "Accede a tu cuenta de LUXEMODA" 
+    document.getElementById("login-subtitle").innerText = currentLang === "es"
+        ? "Accede a tu cuenta de LUXEMODA"
         : "Access your LUXEMODA account";
     document.getElementById("label-login-email").innerText = currentLang === "es" ? "Correo electrónico" : "Email";
     document.getElementById("label-login-password").innerText = currentLang === "es" ? "Contraseña" : "Password";
     document.getElementById("login-btn").innerText = currentLang === "es" ? "Iniciar sesión" : "Sign In";
 }
-
-// Actualizar textos del registro (ya existente)
+// Actualizar textos del registro
 function updateRegisterLabels() {
     document.getElementById("register-title").innerText = currentLang === "es" ? "Registrarse" : "Sign Up";
     document.getElementById("register-subtitle").innerText = currentLang === "es"
@@ -738,7 +754,6 @@ function updateRegisterLabels() {
     document.getElementById("label-birthdate").innerText = currentLang === "es" ? "Fecha de nacimiento" : "Date of Birth";
     document.getElementById("register-btn").innerText = currentLang === "es" ? "Registrarse" : "Sign Up";
 }
-
 // ==================== CAMBIO DE IDIOMA ====================
 document.getElementById("langBtn").onclick = () => {
     currentLang = currentLang === "es" ? "en" : "es";
@@ -749,12 +764,10 @@ document.getElementById("langBtn").onclick = () => {
     document.getElementById("size-label").innerText = currentLang === "es" ? "Talla:" : "Size:";
     document.getElementById("color-label").innerText = currentLang === "es" ? "Color:" : "Color:";
     document.getElementById("add-btn").innerText = currentLang === "es" ? "Añadir al carrito" : "Add to cart";
-
     for (let i = 0; i < 3; i++) {
         const titleEl = document.getElementById(`feat-title-${i}`);
         if (titleEl) titleEl.innerText = currentLang === "es" ? products[i].title_es : products[i].title_en;
     }
-
     if (document.getElementById("products-view").classList.contains("active")) renderAllProducts();
     if (document.getElementById("modal").classList.contains("active")) {
         const p = products[currentProduct];
@@ -764,21 +777,21 @@ document.getElementById("langBtn").onclick = () => {
     if (document.getElementById("register-modal").classList.contains("active")) updateRegisterLabels();
     if (document.getElementById("login-modal").classList.contains("active")) updateLoginLabels();
 };
-
 // ==================== NAVEGACIÓN ====================
 document.getElementById("nav-home").onclick = showHome;
 document.getElementById("nav-products").onclick = showProducts;
 document.getElementById("cta-products").onclick = showProducts;
 
-// Botón de usuario abre directamente el login (más lógico)
+// Botón de usuario (ahora con logout)
 document.getElementById("user-btn").onclick = () => {
     if (currentUser) {
-        alert(currentLang === "es" ? `Ya estás logueado como ${currentUser.nombre}` : `You are logged in as ${currentUser.nombre}`);
+        if (confirm(currentLang === "es" ? "¿Quieres cerrar sesión?" : "Do you want to log out?")) {
+            logout();
+        }
     } else {
         openLoginModal();
     }
 };
-
 // Cerrar con ESC
 document.addEventListener('keydown', e => {
     if (e.key === "Escape") {
@@ -787,6 +800,9 @@ document.addEventListener('keydown', e => {
         else if (document.getElementById("login-modal").classList.contains("active")) closeLoginModal();
     }
 });
+
+// ==================== CARGAR SESIÓN GUARDADA AL INICIAR LA PÁGINA ====================
+window.addEventListener('load', loadSavedSession);
 </script>
 </body>
 </html>
