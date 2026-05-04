@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tienda de Ropa Moderna</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<!-- === SUPABASE CLIENT === -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- ======================= -->
+<style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+        font-family:'Arial',sans-serif;
+        background:#0a0a0a;
+        color:#eaeaea;
+        overflow-x:hidden;
+        scroll-behavior:smooth;
+    }
+    /* HEADER */
+    header{
+        position:fixed;
+        top:0;
+        width:100%;
+        background:rgba(15,15,15,0.92);
+        backdrop-filter:blur(12px);
+        padding:16px 5%;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        z-index:10000;
+        border-bottom:1px solid rgba(255,255,255,0.08);
+    }
+    .header-left{display:flex;align-items:center;gap:18px}
+    .lang-btn{
+        background:#222;
+        color:white;
+        border:none;
+        padding:7px 16px;
+        border-radius:30px;
+        cursor:pointer;
+        font-weight:700;
+        font-size:14px;
+        transition:0.3s;
+    }
+    .lang-btn:hover{background:#ff4081;transform:scale(1.05)}
+    .icon-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:23px;transition:0.3s}
+    .icon-btn:hover{color:#ff4081}
+    .logo{font-size:26px;font-weight:900;letter-spacing:-1px;color:#fff}
+    .logo span{color:#ff4081}
+    nav a{
+        color:#ccc;
+        margin-left:28px;
+        text-decoration:none;
+        font-weight:500;
+        transition:0.3s;
+        cursor:pointer;
+    }
+    nav a:hover{color:#ff4081}
+    /* VISTA INICIO */
+    .home-view{
+        min-height:100vh;
+        background:#0a0a0a;
+    }
+    .hero{
+        height:100vh;
+        background:linear-gradient(rgba(10,10,10,0.65),rgba(10,10,10,0.75)),
+                   url('https://images.unsplash.com/photo-1441986300917-64674bd600d8') center/cover no-repeat;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
+        position:relative;
+    }
+    .hero-content{max-width:900px;padding:0 20px}
+    .hero-content h1{
+        font-size:5.2rem;
+        line-height:1.05;
+        font-weight:900;
+        margin-bottom:8px;
+        color:#fff;
+    }
+    .hero-content h1 span{color:#ff4081}
+    .hero-content p{font-size:1.45rem;margin-bottom:35px;opacity:0.9}
+    .cta-btn{
+        background:#ff4081;
+        color:white;
+        padding:16px 45px;
+        border:none;
+        border-radius:50px;
+        font-size:1.2rem;
+        font-weight:bold;
+        cursor:pointer;
+        transition:0.3s;
+        box-shadow:0 8px 25px rgba(255,64,129,0.35);
+    }
+    .cta-btn:hover{transform:scale(1.06)}
+    /* PRODUCTOS DESTACADOS */
+    .featured-section{
+        padding:80px 5% 100px;
+        background:#111;
+    }
+    .featured-title{
+        text-align:center;
+        font-size:2.8rem;
+        margin-bottom:60px;
+        font-weight:700;
+        position:relative;
+    }
+    .featured-title::after{
+        content:'';
+        width:70px;
+        height:4px;
+        background:#ff4081;
+        position:absolute;
+        bottom:-15px;
+        left:50%;
+        transform:translateX(-50%);
+    }
+    .featured-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+        gap:30px;
+        max-width:1400px;
+        margin:0 auto;
+    }
+    .featured-card{
+        background:#1a1a1a;
+        border-radius:18px;
+        overflow:hidden;
+        cursor:pointer;
+        transition:all 0.3s ease;
+        box-shadow:0 8px 20px rgba(0,0,0,0.25);
+    }
+    .featured-card:hover{
+        transform:translateY(-8px);
+        box-shadow:0 18px 35px rgba(255,64,129,0.2);
+    }
+    .featured-card img{
+        width:100%;
+        height:340px;
+        object-fit:cover;
+        transition:0.4s ease;
+        loading:lazy;
+    }
+    .featured-card:hover img{transform:scale(1.05)}
+    .featured-card .card-content{padding:22px}
+    .featured-card .card-content h3{font-size:1.5rem;margin-bottom:6px}
+    .featured-card .card-content p{font-size:1.3rem;color:#ff4081;font-weight:600}
+    /* VISTA PRODUCTOS */
+    .products-view{
+        display:none;
+        min-height:100vh;
+        background:#111;
+        padding:110px 5% 80px;
+        position:relative;
+    }
+    .products-view.active{display:block}
+    .back-btn{
+        position:absolute;
+        top:30px;
+        left:5%;
+        background:rgba(255,255,255,0.1);
+        color:#fff;
+        border:none;
+        padding:10px 20px;
+        border-radius:30px;
+        cursor:pointer;
+        font-size:1rem;
+        display:flex;
+        align-items:center;
+        gap:8px;
+        transition:0.3s;
+    }
+    .back-btn:hover{background:#ff4081;color:#000}
+    .section-title{
+        text-align:center;
+        font-size:3rem;
+        margin-bottom:60px;
+        font-weight:700;
+        position:relative;
+    }
+    .section-title::after{
+        content:'';
+        width:70px;
+        height:4px;
+        background:#ff4081;
+        position:absolute;
+        bottom:-15px;
+        left:50%;
+        transform:translateX(-50%);
+    }
+    .products{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
+        gap:35px;
+        max-width:1400px;
+        margin:0 auto;
+    }
+    .card{
+        background:#1a1a1a;
+        border-radius:18px;
+        overflow:hidden;
+        cursor:pointer;
+        transition:all 0.3s ease;
+        box-shadow:0 8px 20px rgba(0,0,0,0.25);
+    }
+    .card:hover{
+        transform:translateY(-8px);
+        box-shadow:0 18px 35px rgba(255,64,129,0.2);
+    }
+    .card img{
+        width:100%;
+        height:360px;
+        object-fit:cover;
+        transition:0.4s ease;
+        loading:lazy;
+    }
+    .card:hover img{transform:scale(1.04)}
+    .card-content{padding:22px}
+    .card-content h3{font-size:1.55rem;margin-bottom:6px}
+    .card-content p{font-size:1.35rem;color:#ff4081;font-weight:600}
+    /* MODAL PRODUCTO */
+    .modal{
+        position:fixed;inset:0;background:rgba(0,0,0,0.96);
+        display:flex;justify-content:center;align-items:center;
+        opacity:0;pointer-events:none;transition:0.3s ease;z-index:20000;
+    }
+    .modal.active{opacity:1;pointer-events:auto}
+    .modal-content{
+        width:94%;max-width:1150px;height:88vh;
+        background:#1a1a1a;border-radius:20px;overflow:hidden;display:flex;
+    }
+    .modal-image{flex:1;background-size:cover;background-position:center;transition:0.4s ease}
+    .modal-info{flex:1;padding:45px;display:flex;flex-direction:column;overflow-y:auto}
+    .close{position:absolute;top:22px;right:32px;font-size:42px;cursor:pointer;color:#fff;transition:0.3s}
+    .close:hover{color:#ff4081;transform:rotate(90deg)}
+    .gallery{display:flex;gap:10px;margin:20px 0}
+    .thumb{width:72px;height:72px;background-size:cover;background-position:center;border-radius:10px;cursor:pointer;border:3px solid transparent;transition:0.3s}
+    .thumb.active{border-color:#ff4081;transform:scale(1.08)}
+    .options{display:flex;gap:45px;margin:25px 0}
+    .sizes span{
+        display:inline-block;padding:11px 22px;border:2px solid #444;border-radius:50px;margin:5px 3px;cursor:pointer;transition:0.3s;
+    }
+    .sizes span.active{background:#ff4081;border-color:#ff4081;color:#000}
+    .colors span{
+        display:inline-block;width:36px;height:36px;border-radius:50%;margin:5px 3px;cursor:pointer;border:3px solid #222;
+    }
+    .colors span.active{border:4px solid #fff;box-shadow:0 0 0 5px #ff4081}
+    .btn{
+        background:#ff4081;color:#000;padding:17px;border-radius:50px;text-align:center;font-size:1.25rem;font-weight:bold;
+        cursor:pointer;margin-top:auto;transition:0.3s;
+    }
+    .btn:hover{background:#fff;transform:scale(1.04)}
+    /* MODAL DE REGISTRO Y LOGIN */
+    #register-modal .modal-content,
+    #login-modal .modal-content{
+        width:100%;
+        max-width:480px;
+        height:auto;
+        max-height:92vh;
+        overflow-y:auto;
+        flex-direction:column;
+        padding:40px 30px;
+        border-radius:24px;
+        box-shadow:0 0 60px rgba(255,64,129,0.3);
+    }
+    .register-header{
+        text-align:center;
+        margin-bottom:30px;
+    }
+    .register-header h2{
+        font-size:2.2rem;
+        margin-bottom:8px;
+    }
+    .register-form label{
+        display:block;
+        margin:18px 0 6px;
+        font-weight:600;
+        font-size:1.05rem;
+    }
+    .register-form input{
+        width:100%;
+        padding:14px 16px;
+        border-radius:12px;
+        border:1px solid #444;
+        background:#222;
+        color:#fff;
+        font-size:1.05rem;
+        transition:0.3s;
+    }
+    .register-form input:focus{
+        outline:none;
+        border-color:#ff4081;
+        box-shadow:0 0 0 3px rgba(255,64,129,0.2);
+    }
+    .register-form button{
+        width:100%;
+        margin-top:30px;
+        background:#ff4081;
+        color:#000;
+        padding:16px;
+        border:none;
+        border-radius:50px;
+        font-size:1.25rem;
+        font-weight:bold;
+        cursor:pointer;
+        transition:0.3s;
+    }
+    .register-form button:hover{
+        transform:scale(1.04);
+        background:#fff;
+    }
+    .register-footer{
+        text-align:center;
+        margin-top:25px;
+        font-size:0.95rem;
+    }
+    .register-footer a{
+        color:#ff4081;
+        cursor:pointer;
+        text-decoration:underline;
+    }
+    @media(max-width:768px){
+        .hero-content h1{font-size:3.4rem}
+        .modal-content{flex-direction:column;height:100vh}
+        .modal-image{height:40vh}
+        .products{gap:25px}
+        .featured-grid{gap:20px}
+    }
+</style>
+</head>
+<body>
+<header>
+    <div class="header-left">
+        <button class="lang-btn" id="langBtn">ES / EN</button>
+        <button class="icon-btn" id="user-btn"><i class="fa-regular fa-user"></i></button>
+        <button class="icon-btn"><i class="fa-solid fa-bag-shopping"></i></button>
+    </div>
+    <div class="logo">LUXE<span>MODA</span></div>
+    <nav>
+        <a id="nav-home">Inicio</a>
+        <a id="nav-products">Productos</a>
+    </nav>
+</header>
+<!-- VISTA INICIO -->
+<section id="home-view" class="home-view">
+    <div class="hero">
+        <div class="hero-content">
+            <h1>LO PIDES</h1>
+            <h1><span>LO TIENES</span></h1>
+            <p>Moda urbana premium • Envío exprés • Devolución 30 días</p>
+            <button class="cta-btn" id="cta-products">Ver toda la colección</button>
+        </div>
+    </div>
+    <div class="featured-section">
+        <h2 class="featured-title" id="featured-title">Productos Destacados</h2>
+        <div class="featured-grid">
+            <div class="featured-card" onclick="openModal(0)">
+                <img src="https://images.unsplash.com/photo-1520975922284-8b456906c813" alt="Chaqueta Moderna" loading="lazy">
+                <div class="card-content">
+                    <h3 id="feat-title-0">Chaqueta Moderna</h3>
+                    <p>€59.99</p>
+                </div>
+            </div>
+            <div class="featured-card" onclick="openModal(1)">
+                <img src="https://images.unsplash.com/photo-1520974735194-6d4d6c38b6c0" alt="Sudadera Urbana" loading="lazy">
+                <div class="card-content">
+                    <h3 id="feat-title-1">Sudadera Urbana</h3>
+                    <p>€39.99</p>
+                </div>
+            </div>
+            <div class="featured-card" onclick="openModal(2)">
+                <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c" alt="Pantalón Slim" loading="lazy">
+                <div class="card-content">
+                    <h3 id="feat-title-2">Pantalón Slim</h3>
+                    <p>€49.99</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- VISTA PRODUCTOS -->
+<section id="products-view" class="products-view">
+    <button class="back-btn" onclick="showHome()">
+        <i class="fa-solid fa-arrow-left"></i> Volver al inicio
+    </button>
+    <h2 class="section-title" id="section-title">Todos los Productos</h2>
+    <div class="products" id="products-grid"></div>
+</section>
+<!-- MODAL PRODUCTO -->
+<div class="modal" id="modal">
+    <div class="close" onclick="closeModal()">✖</div>
+    <div class="modal-content">
+        <div class="modal-image" id="modal-img"></div>
+        <div class="modal-info">
+            <h2 id="modal-title"></h2>
+            <p id="modal-price" style="font-size:2rem;color:#ff4081"></p>
+            <p id="modal-desc"></p>
+            <div class="gallery" id="gallery"></div>
+            <div class="options">
+                <div class="sizes">
+                    <strong id="size-label">Talla:</strong><br>
+                    <span onclick="selectSize(this)" class="active">S</span>
+                    <span onclick="selectSize(this)">M</span>
+                    <span onclick="selectSize(this)">L</span>
+                    <span onclick="selectSize(this)">XL</span>
+                </div>
+                <div class="colors">
+                    <strong id="color-label">Color:</strong><br>
+                    <span style="background:#e74c3c" onclick="selectColor(this)"></span>
+                    <span style="background:#3498db" onclick="selectColor(this)"></span>
+                    <span style="background:#2c3e50" onclick="selectColor(this)"></span>
+                    <span style="background:#f1c40f" onclick="selectColor(this)"></span>
+                </div>
+            </div>
+            <div class="btn" id="add-btn" onclick="addToCart()">Añadir al carrito</div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE REGISTRO -->
+<div class="modal" id="register-modal">
+    <div class="modal-content">
+        <div class="close" onclick="closeRegisterModal()" style="top:20px;right:20px;">✖</div>
+        <div class="register-header">
+            <h2 id="register-title">Registrarse</h2>
+            <p id="register-subtitle">Crea tu cuenta y disfruta de beneficios exclusivos</p>
+        </div>
+        <form id="register-form" class="register-form" onsubmit="handleRegister(event)">
+            <label id="label-name">Nombre</label>
+            <input type="text" id="reg-name" required>
+            <label id="label-surname">Apellidos</label>
+            <input type="text" id="reg-surname" required>
+            <label id="label-email">Correo electrónico</label>
+            <input type="email" id="reg-email" required>
+            <label id="label-password">Contraseña</label>
+            <input type="password" id="reg-password" required minlength="6">
+            <label id="label-birthdate">Fecha de nacimiento</label>
+            <input type="date" id="reg-birthdate" required>
+            <button type="submit" id="register-btn">Registrarse</button>
+        </form>
+        <div class="register-footer">
+            ¿Ya tienes cuenta?
+            <a onclick="switchToLogin()">Iniciar sesión</a>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE INICIO DE SESIÓN (NUEVO) -->
+<div class="modal" id="login-modal">
+    <div class="modal-content">
+        <div class="close" onclick="closeLoginModal()" style="top:20px;right:20px;">✖</div>
+        <div class="register-header">
+            <h2 id="login-title">Iniciar sesión</h2>
+            <p id="login-subtitle">Accede a tu cuenta de LUXEMODA</p>
+        </div>
+        <form id="login-form" class="register-form" onsubmit="handleLogin(event)">
+            <label id="label-login-email">Correo electrónico</label>
+            <input type="email" id="login-email" required autocomplete="email">
+            
+            <label id="label-login-password">Contraseña</label>
+            <input type="password" id="login-password" required minlength="6" autocomplete="current-password">
+            
+            <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 20px;font-size:0.9rem;">
+                <label style="cursor:pointer;display:flex;align-items:center;gap:6px;">
+                    <input type="checkbox" id="remember-me" style="accent-color:#ff4081;"> Recordarme
+                </label>
+                <a onclick="forgotPassword()" style="color:#ff4081;cursor:pointer;">¿Olvidaste tu contraseña?</a>
+            </div>
+            
+            <button type="submit" id="login-btn">Iniciar sesión</button>
+        </form>
+        <div class="register-footer">
+            ¿No tienes cuenta?
+            <a onclick="switchToRegister()">Registrarse</a>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ==================== SUPABASE CONFIG ==================== */
+const SUPABASE_URL = 'https://sppprhvlotyczbfbnhrm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_NbReu85I1VvdbQngDW5Lpg_uZxMhyqO';
+// ←←← REEMPLAZA ESTA CLAVE con tu "anon public key" real de Supabase
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* ======================================================== */
+
+const products = [
+    {title_es:"Chaqueta Moderna", title_en:"Modern Jacket", price:"€59.99", desc_es:"Chaqueta premium de corte oversize con forro interior suave. Material resistente al agua.", desc_en:"Premium oversized jacket with soft interior lining. Water-resistant material.", images:["https://images.unsplash.com/photo-1520975922284-8b456906c813","https://images.unsplash.com/photo-1551028719-00167b16b4d0"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1520975922284-8b456906c813","#3498db":"https://images.unsplash.com/photo-1551028719-00167b16b4d0","#2c3e50":"https://images.unsplash.com/photo-1542272604-787c3835535d","#f1c40f":"https://images.unsplash.com/photo-1586790170083-2f9ceadc7327"}},
+    {title_es:"Sudadera Urbana", title_en:"Urban Hoodie", price:"€39.99", desc_es:"Sudadera de algodón orgánico con capucha y bolsillo canguro. Estilo streetwear.", desc_en:"Organic cotton hoodie with hood and kangaroo pocket. Streetwear style.", images:["https://images.unsplash.com/photo-1520974735194-6d4d6c38b6c0","https://images.unsplash.com/photo-1556821840-3a63f95609a7"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1520974735194-6d4d6c38b6c0","#3498db":"https://images.unsplash.com/photo-1556821840-3a63f95609a7","#2c3e50":"https://images.unsplash.com/photo-1586790170083-2f9ceadc7327","#f1c40f":"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"}},
+    {title_es:"Pantalón Slim", title_en:"Slim Pants", price:"€49.99", desc_es:"Pantalón slim fit de alta elasticidad. Diseño moderno y cómodo para el día a día.", desc_en:"High-stretch slim-fit pants. Modern and comfortable everyday design.", images:["https://images.unsplash.com/photo-1503342217505-b0a15ec3261c","https://images.unsplash.com/photo-1542272604-787c3835535d"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1503342217505-b0a15ec3261c","#3498db":"https://images.unsplash.com/photo-1542272604-787c3835535d","#2c3e50":"https://images.unsplash.com/photo-1551028719-00167b16b4d0","#f1c40f":"https://images.unsplash.com/photo-1520975922284-8b456906c813"}},
+    {title_es:"Camiseta Oversize", title_en:"Oversize T-Shirt", price:"€29.99", desc_es:"Camiseta premium oversize de algodón 100% con corte relajado y logo discreto.", desc_en:"Premium oversize cotton t-shirt with relaxed fit and subtle logo.", images:["https://images.unsplash.com/photo-1586790170083-2f9ceadc7327","https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1586790170083-2f9ceadc7327","#3498db":"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab","#2c3e50":"https://images.unsplash.com/photo-1551028719-00167b16b4d0","#f1c40f":"https://images.unsplash.com/photo-1520974735194-6d4d6c38b6c0"}},
+    {title_es:"Zapatillas Urbanas", title_en:"Urban Sneakers", price:"€69.99", desc_es:"Zapatillas deportivas urbanas con suela amortiguada y diseño minimalista.", desc_en:"Urban sneakers with cushioned sole and minimalist design.", images:["https://images.unsplash.com/photo-1549298916-b41d501d3772","https://images.unsplash.com/photo-1605408499391-7b4c4c4f5f"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1549298916-b41d501d3772","#3498db":"https://images.unsplash.com/photo-1605408499391-7b4c4c4f5f","#2c3e50":"https://images.unsplash.com/photo-1520975922284-8b456906c813","#f1c40f":"https://images.unsplash.com/photo-1551028719-00167b16b4d0"}},
+    {title_es:"Jeans Cargo", title_en:"Cargo Jeans", price:"€54.99", desc_es:"Jeans cargo con múltiples bolsillos y corte recto. Estilo streetwear premium.", desc_en:"Cargo jeans with multiple pockets and straight fit. Premium streetwear style.", images:["https://images.unsplash.com/photo-1542272604-787c3835535d","https://images.unsplash.com/photo-1551028719-00167b16b4d0"], colorImages:{"#e74c3c":"https://images.unsplash.com/photo-1542272604-787c3835535d","#3498db":"https://images.unsplash.com/photo-1551028719-00167b16b4d0","#2c3e50":"https://images.unsplash.com/photo-1503342217505-b0a15ec3261c","#f1c40f":"https://images.unsplash.com/photo-1520974735194-6d4d6c38b6c0"}}
+];
+
+let currentLang = "es";
+let currentProduct = 0;
+let selectedSize = "S";
+let selectedColor = "#e74c3c";
+let currentUser = null; // Para saber si el usuario está logueado
+
+// ==================== FUNCIONES DE PRODUCTOS ====================
+function showHome() {
+    document.getElementById("home-view").style.display = "block";
+    document.getElementById("products-view").classList.remove("active");
+}
+function showProducts() {
+    document.getElementById("home-view").style.display = "none";
+    document.getElementById("products-view").classList.add("active");
+    renderAllProducts();
+}
+function renderAllProducts() {
+    const container = document.getElementById("products-grid");
+    container.innerHTML = "";
+    products.forEach((p, i) => {
+        const cardHTML = `<div class="card" onclick="openModal(${i})"><img src="${p.images[0]}" alt="${p.title_es}" loading="lazy"><div class="card-content"><h3>${currentLang === "es" ? p.title_es : p.title_en}</h3><p>${p.price}</p></div></div>`;
+        container.innerHTML += cardHTML;
+    });
+}
+function openModal(i) {
+    currentProduct = i;
+    const p = products[i];
+    const modal = document.getElementById("modal");
+    modal.classList.add("active");
+    document.getElementById("modal-title").innerText = currentLang === "es" ? p.title_es : p.title_en;
+    document.getElementById("modal-price").innerText = p.price;
+    document.getElementById("modal-desc").innerText = currentLang === "es" ? p.desc_es : p.desc_en;
+    selectedColor = "#e74c3c";
+    document.getElementById("modal-img").style.backgroundImage = `url(${p.colorImages["#e74c3c"]})`;
+    document.querySelectorAll('.colors span').forEach(c => c.classList.remove('active'));
+    document.querySelector('.colors span[style*="background:#e74c3c"]').classList.add('active');
+    loadGallery(0);
+}
+function loadGallery(index) {
+    const gallery = document.getElementById("gallery");
+    gallery.innerHTML = "";
+    const imgs = products[currentProduct].images;
+    imgs.forEach((img, i) => {
+        const div = document.createElement("div");
+        div.className = `thumb ${i === index ? 'active' : ''}`;
+        div.style.backgroundImage = `url(${img})`;
+        div.onclick = () => loadGallery(i);
+        gallery.appendChild(div);
+    });
+}
+function closeModal() { document.getElementById("modal").classList.remove("active"); }
+function selectSize(el) {
+    document.querySelectorAll('.sizes span').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    selectedSize = el.textContent;
+}
+function selectColor(el) {
+    document.querySelectorAll('.colors span').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    selectedColor = el.style.background;
+    const p = products[currentProduct];
+    if (p.colorImages && p.colorImages[selectedColor]) {
+        document.getElementById("modal-img").style.backgroundImage = `url(${p.colorImages[selectedColor]})`;
+    }
+}
+function addToCart() {
+    if (!selectedSize || !selectedColor) {
+        alert(currentLang === "es" ? "Selecciona talla y color" : "Select size and color");
+        return;
+    }
+    const msg = currentLang === "es"
+        ? `¡Añadido al carrito!\n${products[currentProduct].title_es} - ${selectedSize} - ${selectedColor}`
+        : `Added to cart!\n${products[currentProduct].title_en} - ${selectedSize} - ${selectedColor}`;
+    alert(msg);
+}
+
+// ==================== MODALES DE AUTENTICACIÓN ====================
+function openRegisterModal() {
+    document.getElementById("register-modal").classList.add("active");
+    updateRegisterLabels();
+}
+function closeRegisterModal() {
+    document.getElementById("register-modal").classList.remove("active");
+}
+function openLoginModal() {
+    document.getElementById("login-modal").classList.add("active");
+    updateLoginLabels();
+}
+function closeLoginModal() {
+    document.getElementById("login-modal").classList.remove("active");
+}
+
+// Registro (ya existente, solo se mantiene)
+async function handleRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById("reg-name").value.trim();
+    const surname = document.getElementById("reg-surname").value.trim();
+    const email = document.getElementById("reg-email").value.trim();
+    const password = document.getElementById("reg-password").value;
+    const birthdate = document.getElementById("reg-birthdate").value;
+
+    if (!name || !surname || !email || !password || !birthdate) {
+        alert(currentLang === "es" ? "Por favor completa todos los campos" : "Please fill in all fields");
+        return;
+    }
+
+    const registerBtn = document.getElementById("register-btn");
+    const originalText = registerBtn.innerText;
+    registerBtn.innerText = currentLang === "es" ? "Registrando..." : "Registering...";
+    registerBtn.disabled = true;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('usuarios')
+            .insert([{
+                nombre: name,
+                apellidos: surname,
+                correo_electronico: email,
+                contraseña: password,
+                fecha_nacimiento: birthdate
+            }])
+            .select();
+
+        if (error) throw error;
+
+        alert(currentLang === "es"
+            ? `¡Registro completado con éxito! 🎉\nBienvenido, ${name} ${surname}`
+            : `Registration successful! 🎉\nWelcome, ${name} ${surname}`);
+        
+        closeRegisterModal();
+        document.getElementById("register-form").reset();
+        // Abrir automáticamente el login después del registro
+        setTimeout(() => openLoginModal(), 800);
+    } catch (error) {
+        console.error('Error:', error);
+        alert(currentLang === "es"
+            ? `Error: ${error.message}\n¿Desactivaste RLS en la tabla 'usuarios'?`
+            : `Error: ${error.message}`);
+    } finally {
+        registerBtn.innerText = originalText;
+        registerBtn.disabled = false;
+    }
+}
+
+// NUEVO: Inicio de sesión
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    
+    if (!email || !password) {
+        alert(currentLang === "es" ? "Por favor ingresa correo y contraseña" : "Please enter email and password");
+        return;
+    }
+
+    const loginBtn = document.getElementById("login-btn");
+    const originalText = loginBtn.innerText;
+    loginBtn.innerText = currentLang === "es" ? "Iniciando sesión..." : "Signing in...";
+    loginBtn.disabled = true;
+
+    try {
+        // Consulta a la misma tabla que usas en el registro
+        const { data, error } = await supabaseClient
+            .from('usuarios')
+            .select('*')
+            .eq('correo_electronico', email)
+            .single();
+
+        if (error || !data) {
+            throw new Error(currentLang === "es" ? "Usuario no encontrado" : "User not found");
+        }
+
+        if (data.contraseña !== password) {
+            throw new Error(currentLang === "es" ? "Contraseña incorrecta" : "Incorrect password");
+        }
+
+        // Login exitoso
+        currentUser = data;
+        
+        alert(currentLang === "es"
+            ? `¡Bienvenido de nuevo, ${data.nombre}! 👋`
+            : `Welcome back, ${data.nombre}! 👋`);
+        
+        closeLoginModal();
+        document.getElementById("login-form").reset();
+        
+        // Opcional: cambiar el icono del usuario a "loggeado"
+        document.getElementById("user-btn").innerHTML = `<i class="fa-solid fa-circle-user"></i>`;
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert(currentLang === "es"
+            ? `Error: ${error.message}`
+            : `Error: ${error.message}`);
+    } finally {
+        loginBtn.innerText = originalText;
+        loginBtn.disabled = false;
+    }
+}
+
+// Olvidaste contraseña (demo)
+function forgotPassword() {
+    alert(currentLang === "es" 
+        ? "En un proyecto real recibirías un email de recuperación.\nPor ahora, prueba con los datos que registraste." 
+        : "In a real project you would receive a recovery email.\nFor now, use the credentials you registered.");
+}
+
+// Cambiar entre modales
+function switchToLogin() {
+    closeRegisterModal();
+    setTimeout(() => openLoginModal(), 300);
+}
+function switchToRegister() {
+    closeLoginModal();
+    setTimeout(() => openRegisterModal(), 300);
+}
+
+// Actualizar textos del login (bilingüe)
+function updateLoginLabels() {
+    document.getElementById("login-title").innerText = currentLang === "es" ? "Iniciar sesión" : "Sign In";
+    document.getElementById("login-subtitle").innerText = currentLang === "es" 
+        ? "Accede a tu cuenta de LUXEMODA" 
+        : "Access your LUXEMODA account";
+    document.getElementById("label-login-email").innerText = currentLang === "es" ? "Correo electrónico" : "Email";
+    document.getElementById("label-login-password").innerText = currentLang === "es" ? "Contraseña" : "Password";
+    document.getElementById("login-btn").innerText = currentLang === "es" ? "Iniciar sesión" : "Sign In";
+}
+
+// Actualizar textos del registro (ya existente)
+function updateRegisterLabels() {
+    document.getElementById("register-title").innerText = currentLang === "es" ? "Registrarse" : "Sign Up";
+    document.getElementById("register-subtitle").innerText = currentLang === "es"
+        ? "Crea tu cuenta y disfruta de beneficios exclusivos"
+        : "Create your account and enjoy exclusive benefits";
+    document.getElementById("label-name").innerText = currentLang === "es" ? "Nombre" : "First Name";
+    document.getElementById("label-surname").innerText = currentLang === "es" ? "Apellidos" : "Last Name";
+    document.getElementById("label-email").innerText = currentLang === "es" ? "Correo electrónico" : "Email";
+    document.getElementById("label-password").innerText = currentLang === "es" ? "Contraseña" : "Password";
+    document.getElementById("label-birthdate").innerText = currentLang === "es" ? "Fecha de nacimiento" : "Date of Birth";
+    document.getElementById("register-btn").innerText = currentLang === "es" ? "Registrarse" : "Sign Up";
+}
+
+// ==================== CAMBIO DE IDIOMA ====================
+document.getElementById("langBtn").onclick = () => {
+    currentLang = currentLang === "es" ? "en" : "es";
+    document.getElementById("nav-home").innerText = currentLang === "es" ? "Inicio" : "Home";
+    document.getElementById("nav-products").innerText = currentLang === "es" ? "Productos" : "Products";
+    document.getElementById("featured-title").innerText = currentLang === "es" ? "Productos Destacados" : "Featured Products";
+    document.getElementById("section-title").innerText = currentLang === "es" ? "Todos los Productos" : "All Products";
+    document.getElementById("size-label").innerText = currentLang === "es" ? "Talla:" : "Size:";
+    document.getElementById("color-label").innerText = currentLang === "es" ? "Color:" : "Color:";
+    document.getElementById("add-btn").innerText = currentLang === "es" ? "Añadir al carrito" : "Add to cart";
+
+    for (let i = 0; i < 3; i++) {
+        const titleEl = document.getElementById(`feat-title-${i}`);
+        if (titleEl) titleEl.innerText = currentLang === "es" ? products[i].title_es : products[i].title_en;
+    }
+
+    if (document.getElementById("products-view").classList.contains("active")) renderAllProducts();
+    if (document.getElementById("modal").classList.contains("active")) {
+        const p = products[currentProduct];
+        document.getElementById("modal-title").innerText = currentLang === "es" ? p.title_es : p.title_en;
+        document.getElementById("modal-desc").innerText = currentLang === "es" ? p.desc_es : p.desc_en;
+    }
+    if (document.getElementById("register-modal").classList.contains("active")) updateRegisterLabels();
+    if (document.getElementById("login-modal").classList.contains("active")) updateLoginLabels();
+};
+
+// ==================== NAVEGACIÓN ====================
+document.getElementById("nav-home").onclick = showHome;
+document.getElementById("nav-products").onclick = showProducts;
+document.getElementById("cta-products").onclick = showProducts;
+
+// Botón de usuario abre directamente el login (más lógico)
+document.getElementById("user-btn").onclick = () => {
+    if (currentUser) {
+        alert(currentLang === "es" ? `Ya estás logueado como ${currentUser.nombre}` : `You are logged in as ${currentUser.nombre}`);
+    } else {
+        openLoginModal();
+    }
+};
+
+// Cerrar con ESC
+document.addEventListener('keydown', e => {
+    if (e.key === "Escape") {
+        if (document.getElementById("modal").classList.contains("active")) closeModal();
+        else if (document.getElementById("register-modal").classList.contains("active")) closeRegisterModal();
+        else if (document.getElementById("login-modal").classList.contains("active")) closeLoginModal();
+    }
+});
+</script>
+</body>
+</html>
